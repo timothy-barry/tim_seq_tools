@@ -19,8 +19,9 @@ def fq(file):
 
 # index_fp = "/Users/timbarry/research_offsite/external/crispr-quant/CD34_WT_Cas9_ELANE_e3SA_GSPplus_5uM_S86_S2_L001_I1_001.fastq"
 # index_fp = "/Users/timbarry/research_offsite/external/crispr-quant/CD34_WT_Cas9_ELANE_e3SA_GSPplus_5uM_S86_S2_L001_I2_001.fastq"
+# index_fp = "/Users/timbarry/research_code/guideseq/test/data/demultiplexed/control.i1.fastq"
 # returns the number of reads that differ from the consensus read by a hamming distance of more than 2
-def compute_n_mismatches_from_consensus_read(index_fp):
+def compute_n_different_from_consensus_read(index_fp, hamming_dist = 2):
 	zeroith_line = next(fq(index_fp))
 	barcode_len = len(zeroith_line[1])
 	base_dict = [{"A" : 0, "T" : 0, "G" : 0, "C" : 0, "N" : 0} for i in range(barcode_len)]
@@ -41,7 +42,7 @@ def compute_n_mismatches_from_consensus_read(index_fp):
 	n_mismatches = 0
 	for line in fq(index_fp):
 		curr_barcode = line[1]
-		if hamming(curr_barcode, consensus_barcode) >= 1:
+		if hamming(curr_barcode, consensus_barcode) >= hamming_dist:
 			n_mismatches += 1
 
 	return n_mismatches
