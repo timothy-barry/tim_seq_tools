@@ -1,6 +1,8 @@
 import re
 import gzip
+import os
 from Levenshtein import hamming
+from pathlib import Path
 
 def fq(file):
 	if re.search('.gz$', file):
@@ -46,3 +48,30 @@ def compute_n_different_from_consensus_read(index_fp, hamming_dist = 2):
 			n_mismatches += 1
 
 	return n_mismatches
+
+
+# index_fp = "/Users/timbarry/research_offsite/external/crispr-quant/293T-SpRY-Cas9-1620-GSPneg-S79_S87_L001_/293T-SpRY-Cas9-1620-GSPneg-S79_S87_L001_I1_001.fastq.gz"
+def simplify_read_ids(index_fp):
+	# create new file
+	input_path = Path(index_fp)
+	new_name = input_path.stem + "_new" + input_path.suffix
+	new_path = input_path.with_name(new_name)
+	with open(new_path, 'w') as out_file:
+		for record in fq(index_fp):  # record: list of 4 lines
+			# Simplify the read ID (first line)
+			header = record[0].split()[0]  # gets '@SEQ_ID'
+			seq = record[1]
+			plus = record[2]
+			qual = record[3]
+			# Write each to file, each with a newline
+			out_file.write(f"{header}\n{seq}\n{plus}\n{qual}\n")
+	os.remove(index_fp)
+	os.rename(new_path, input_path)
+
+def make_umi_table(index_fp, out_file_fp = "", umi_start_pos=0, umi_end_pos=8):
+	# create new file
+	with open(out_file_fp, 'w') as out_file:
+		for record in fq(index_fp):
+			curr_umi = record[1][umi_start_pos:umi_end_pos]
+			curr_id = record[0]
+			out_file.write(f"{curr_id}\t{curr_umi}\n")
